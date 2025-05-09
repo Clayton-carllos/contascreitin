@@ -20,7 +20,7 @@ app = Flask(__name__)
 app.secret_key = 'your_secret_key' #Para conseguir usar o flash
 
 #Configuração Banco de dados
-app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://postgres:VGqcuUuAjEcaoMKPejZtwcYnvAkcgPyz@shuttle.proxy.rlwy.net:40520/railway' #Id Banco de dados
+app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://contas_db_user:iMnybI2hZl0JENjwfNDnKvZukKJz0D3Q@dpg-d0f584be5dus738dkorg-a.ohio-postgres.render.com/contas_db' #Id Banco de dados
 app.config['SQLALCHEMY_TRACK_NOTIFICATIONS'] = False
 db = SQLAlchemy(app)
 migrate = Migrate(app, db)

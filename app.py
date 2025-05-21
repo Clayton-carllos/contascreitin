@@ -15,12 +15,14 @@ from flask import flash
 import pytz
 from flask import jsonify
 from sqlalchemy import func
+from sqlalchemy import extract, func, cast
+import json
 
 app = Flask(__name__)
 app.secret_key = 'your_secret_key' #Para conseguir usar o flash
 
 #Configuração Banco de dados
-app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://contas_db_user:iMnybI2hZl0JENjwfNDnKvZukKJz0D3Q@dpg-d0f584be5dus738dkorg-a.ohio-postgres.render.com/contas_db' #Id Banco de dados
+app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://contas_db_ndwt_user:pYt3O4PZrMS0MFwpQnFbDVe66Ozua9pI@dpg-d0kd8opr0fns73aedve0-a.oregon-postgres.render.com/contas_db_ndwt' #Id Banco de dados
 app.config['SQLALCHEMY_TRACK_NOTIFICATIONS'] = False
 db = SQLAlchemy(app)
 migrate = Migrate(app, db)
@@ -36,6 +38,7 @@ class Transition(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     description = db.Column(db.String(100), nullable=False)
     value = db.Column(Numeric(10, 2), nullable=False)
+    pagamento = db.Column(db.String(120), nullable=False)
     typee = db.Column(db.String(120), nullable=False)
     date_transition = db.Column(db.Date, nullable=False)
 
@@ -44,8 +47,18 @@ class FixedTransition(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     description = db.Column(db.String(100), nullable=False)
     value = db.Column(Numeric(10, 2), nullable=False)
+    pagamento = db.Column(db.String(120), nullable=False)
     typee = db.Column(db.String(120), nullable=False)
     date_transition = db.Column(db.Date, nullable=False)
+
+class Contas(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    description = db.Column(db.String(100), nullable=False)
+    value = db.Column(Numeric(10, 2), nullable=False)
+    pagamento = db.Column(db.String(100), nullable=False)
+    typee = db.Column(db.String(100), nullable=False)
+    date_vencimento = db.Column(db.Date, nullable=False)
+    status = db.Column(db.String(50), nullable=False)
 
 # Criar banco de dados e verificar se o admin existe
 with app.app_context():
@@ -75,23 +88,22 @@ def index():
     agora = datetime.now(br_tz)
 
     # Total geral
-    receitas_total = Transition.query.filter_by(typee='Receita') \
-        .with_entities(func.sum(cast(Transition.value, db.Float))).scalar() or 0
+    receitas_total = Transition.query \
+    .with_entities(func.sum(cast(Transition.value, db.Float))).scalar() or 0
 
-    despesas_total = FixedTransition.query.filter_by(typee='Despesa') \
-        .with_entities(func.sum(cast(FixedTransition.value, db.Float))).scalar() or 0
+    despesas_total = FixedTransition.query \
+    .with_entities(func.sum(cast(FixedTransition.value, db.Float))).scalar() or 0
     
-    # Soma das receitas do mês atual
+    # Soma das despesas do mês atual
     receitas_mes = Transition.query.filter(
-        extract('month', Transition.date_transition) == agora.month,
-        extract('year', Transition.date_transition) == agora.year
+    extract('month', Transition.date_transition) == agora.month,
+    extract('year', Transition.date_transition) == agora.year
     ).with_entities(func.sum(cast(Transition.value, db.Float))).scalar() or 0
 
-    # Soma das despesas do mês atual
     despesas_mes = FixedTransition.query.filter(
-        extract('month', FixedTransition.date_transition) == agora.month,
-        extract('year', FixedTransition.date_transition) == agora.year
-    ).with_entities(func.sum(cast(FixedTransition.value, db.Float))).scalar() or 0
+    extract('month', FixedTransition.date_transition) == agora.month,
+    extract('year', FixedTransition.date_transition) == agora.year
+)   .with_entities(func.sum(cast(FixedTransition.value, db.Float))).scalar() or 0
 
     # Agrupar por mês (últimos 6 meses por exemplo)
     receitas_mensais = Transition.query.filter_by(typee='Receita') \
@@ -134,12 +146,13 @@ def transacao():
     if request.method == 'POST':
         description = request.form['descricao']
         value = request.form['valor']
+        pagamento = request.form['pagamento']
         typee = request.form['type']
         date_transition = datetime.strptime(request.form['data'], '%Y-%m-%d').date()
 
         # Caso contrário, cria o nova transacao
         novo_transacao = Transition(
-            description=description, value=value, typee=typee, date_transition=date_transition
+            description=description, value=value, typee=typee, date_transition=date_transition, pagamento=pagamento
         )
 
         # Salvar no banco de dados
@@ -164,12 +177,13 @@ def transacaofixa():
     if request.method == 'POST':
         description = request.form['descricao']
         value = request.form['valor']
+        pagamento = request.form['pagamento']
         typee = request.form['type']
         date_transition = datetime.strptime(request.form['data'], '%Y-%m-%d').date()
 
         # Caso contrário, cria o nova transacao FIXA
         novo_transacaofixa = FixedTransition(
-            description=description, value=value, typee=typee, date_transition=date_transition
+            description=description, value=value, typee=typee, date_transition=date_transition, pagamento=pagamento
         )
 
         # Salvar no banco de dados
@@ -187,6 +201,42 @@ def transacaofixa():
 
     # Retorna o template que exibe o formulário ou faz algo com o 'typee'
     return render_template('transacao.html', typee=typee)
+
+# Rota para processar a CONTA
+@app.route('/conta', methods=['GET', 'POST'])
+def contas():
+    if request.method == 'POST':
+        description = request.form['descricao']
+        value = request.form['valor']
+        pagamento = request.form['pagamento']
+        typee = request.form['type']
+        date_vencimento = datetime.strptime(request.form['data'], '%Y-%m-%d').date()
+        status = request.form['status'].strip().lower()
+
+        # Caso contrário, cria o nova conta
+        novo_conta = Contas(
+            description=description, value=value, typee=typee, date_vencimento=date_vencimento, pagamento=pagamento, status=status
+        )
+
+        # Salvar no banco de dados
+        db.session.add(novo_conta)
+        db.session.commit()
+
+        
+
+        # Flash de sucesso
+        flash('Transação cadastrada com sucesso!', 'success')
+
+        # Redireciona para a lista de transações ou para outra página
+        return redirect(url_for('contas'))
+    
+    contas = Contas.query.all()
+    br_tz = pytz.timezone("America/Sao_Paulo")
+    hoje = datetime.now(br_tz).date()
+    
+     
+    # Retorna o template que exibe o formulário ou faz algo com o 'typee'
+    return render_template('contas.html', contas=contas, hoje=hoje)
 
 # Rota para exibir um novo gastos
 @app.route('/novo_gasto', methods=['GET', 'POST'])
@@ -221,6 +271,20 @@ def novo_gastomensal():
     gastos = FixedTransition.query.all()
 
     return render_template('novo_gastomensal.html', nome_usuario=nome_usuario, gastos=gastos, tipo=tipo)
+
+#Rota para exibir uma nova conta
+@app.route('/nova_conta', methods=['GET', 'POST'])
+def nova_conta():
+    if 'usuario_id' not in session:
+        flash('Você precisa estar logado para adicionar um usuário.', 'warning')
+        return redirect(url_for('login'))
+
+    # Recupera o nome do usuário logado
+    nome_usuario = session.get('username')  # Obtém o nome do usuário da sessão
+
+    contas = Contas.query.all()
+
+    return render_template('nova_conta.html', nome_usuario=nome_usuario, contas=contas)
 
 #--------------------------------------------------------------------------------------------------------------------------------------------
 # Rota para exibir o formulário de adicionar usuário
@@ -345,7 +409,7 @@ def lista_transacoestotal():
 
     return render_template('controlFinance.html', tabelas=tabelas, nome_usuario=nome_usuario)
 
-#Rota para controles Fixos
+#Rota para despesas
 @app.route('/depesas')
 def lista_transacoesfixas():
     if 'usuario_id' not in session:
@@ -359,13 +423,7 @@ def lista_transacoesfixas():
 
     return render_template('controlFixo.html', fixas=fixas, nome_usuariofixo=nome_usuariofixo)
 
-
 # Rota para exibir a Home
-
-# Rota para exibir a Home
-from sqlalchemy import extract, func, cast
-import json
-
 @app.route('/home')
 def home():
     if 'usuario_id' not in session:
@@ -454,6 +512,15 @@ def deletar(tipo, id):
     else:
         flash('Tipo inválido.', 'danger')
         return redirect(url_for('home'))
+
+#Rota para excluir contas 
+@app.route('/excluir_conta/<int:id>', methods=['POST'])
+def excluir_conta(id):
+    conta = Contas.query.get_or_404(id)
+    db.session.delete(conta)
+    db.session.commit()
+    flash('Conta excluída com sucesso!', 'success')
+    return redirect(url_for('contas'))
     
 
 # Rota para editar uma transação
@@ -464,6 +531,7 @@ def editar_transacao(id, tipo):
         if request.method == 'POST':
             transacao.description = request.form['description']
             transacao.value = request.form['value']
+            transacao.pagamento = request.form['pagamento']
             data_str = request.form['date_transition']
             transacao.date_transition = datetime.strptime(data_str, '%Y-%m-%d').date()
             db.session.commit()
@@ -476,6 +544,7 @@ def editar_transacao(id, tipo):
         if request.method == 'POST':
             transacao.description = request.form['description']
             transacao.value = request.form['value']
+            transacao.pagamento = request.form['pagamento']
             data_str = request.form['date_transition']
             transacao.date_transition = datetime.strptime(data_str, '%Y-%m-%d').date()
             db.session.commit()
@@ -487,6 +556,27 @@ def editar_transacao(id, tipo):
     flash('Tipo inválido.', 'danger')
     return redirect(url_for('home'))  # <- garante que sempre há um retorno
 
+#Rota para editar uma conta
+@app.route('/editar_conta/<int:id>', methods=['GET', 'POST'])
+def editar_conta(id):
+    conta = Contas.query.get_or_404(id)
+
+    if request.method == 'POST':
+        # Atualiza os dados com os dados do formulário
+        conta.description = request.form['descricao']
+        conta.value = request.form['valor']
+        conta.pagamento = request.form['pagamento']
+        conta.typee = request.form['type']
+        conta.date_vencimento = datetime.strptime(request.form['data'], '%Y-%m-%d').date()
+        conta.status = request.form['status']
+
+        db.session.commit()
+
+        flash('Conta atualizada com sucesso!', 'success')
+        return redirect(url_for('contas'))  # ou para outra rota que liste as contas
+
+    # Se GET, renderiza um formulário com os dados da conta preenchidos
+    return render_template('editar_conta.html', conta=conta)
 
 #Rota para exportar relatorio
 @app.route('/exportar-relatorio')
@@ -499,11 +589,11 @@ def exportar_relatorio():
     writer = csv.writer(output)
     
     # Escreve o cabeçalho do CSV
-    writer.writerow(['Descricao', 'Valor', 'Tipo', 'Data'])
+    writer.writerow(['Descricao', 'Valor','Forma de Pagamento', 'Tipo', 'Data'])
 
-    # Adiciona os dados dos agendamentos ao CSV
+    # Adiciona os dados das transaçoes ao CSV
     for transacao in transacao:
-        writer.writerow([transacao.description, transacao.value, transacao.typee])
+        writer.writerow([transacao.description, transacao.value, transacao.pagamento, transacao.typee, transacao.date_transition])
     
     # Prepara o CSV para ser enviado como resposta
     output.seek(0)  # Volta o ponteiro do buffer para o início

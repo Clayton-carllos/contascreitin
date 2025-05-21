@@ -1,4 +1,4 @@
-<!--ESSE  É O HTML DA PAGINA DE CONTROLE DE RECEITAS -->
+<!--ESSE  É O HTML DA PAGINA DE ADICIONAR UMA NOVA RECEITA -->
 <!DOCTYPE html>
 <html lang="en">
 
@@ -10,7 +10,7 @@
     <meta name="description" content="">
     <meta name="author" content="">
 
-    <title>CRS - Receitas</title>
+    <title>CRS - Contas</title>
 
     <link rel="icon" href="../static/imagens/favicon.ico" type="image/x-icon">
 
@@ -28,6 +28,8 @@
 
     <!-- Bootstrap CSS -->
     <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" rel="stylesheet">
+
+    <link rel="stylesheet" href="../static/style.css">
 
 </head>
 
@@ -86,6 +88,13 @@
                     <span>Contas</span></a>
             </li>
 
+            <!-- Nav Item - Pages Collapse Gastos fixos -->
+            <li class="nav-item">
+                <a class="nav-link" href="{{url_for('contas')}}">
+                    <i class="fas fa-fw fa-money-bill-wave"></i>
+                    <span>Contas</span></a>
+            </li>
+
             <!-- Divider -->
             <hr class="sidebar-divider d-none d-md-block">
 
@@ -97,107 +106,101 @@
         </ul>
         <!-- End of Sidebar -->
 
-        <!-- Content Wrapper -->
-        <div id="content-wrapper" class="d-flex flex-column">
+        <!-- NAV  --------------------------------------------------------------------------------------------------------------------------->
 
-            <!-- Main Content -->
-            <div id="content">
+    <!-- Content Wrapper -->
+    <div id="content-wrapper" class="d-flex flex-column">
 
-                <!-- Topbar -->
-                <nav class="navbar navbar-expand navbar-light topbar mb-4 static-top" style="background-color: #e2e7ea;">
+        <!-- Main Content -->
+        <div id="content">
 
-                    <!-- Sidebar Toggle (Topbar) -->
-                    <button class="btn btn-link d-md-none rounded-circle mr-3" id="sidebarToggleTop">
-                        <i class="fa fa-bars"></i>
-                    </button>
+            <!-- Topbar -->
+            <nav class="navbar navbar-expand navbar-light topbar mb-4 static-top" style="background-color: #e2e7ea;">
 
-                    <!-- Topbar Navbar -->
-                    <ul class="navbar-nav ml-auto">
+                <!-- Sidebar Toggler (Hamburger) -->
+                <button id="sidebarToggleTop" class="btn btn-link d-md-none rounded-circle mr-3">
+                    <i class="fa fa-bars"></i>
+                </button>
 
-                        <!-- Nav Item - User Information -->
-                        <li class="nav-item dropdown no-arrow">
-                            <a class="nav-link dropdown-toggle" href="#" id="userDropdown" role="button"
-                                data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                                <i class="fas fa-user-circle fa-sm fa-fw mr-2 text-dark"></i>
-                                <span class="mr-2 d-none d-lg-inline text-dark font-weight-bold">{{ nome_usuario }}</span>
+                <!-- Topbar Navbar -->
+                <ul class="navbar-nav ml-auto">
+
+                    <!-- Nav Item - Alerts -->
+                    <li class="nav-item dropdown no-arrow mx-1">
+              
+                        <!-- Dropdown - Alerts -->
+                        <div class="dropdown-list dropdown-menu dropdown-menu-right shadow animated--grow-in"
+                            aria-labelledby="alertsDropdown">
+
+                    <div class="topbar-divider d-none d-sm-block"></div>
+
+                    <!-- Nav Item - User Information -->
+                    <li class="nav-item dropdown no-arrow">
+                        <a class="nav-link dropdown-toggle" href="#" id="userDropdown" role="button"
+data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+<i class="fas fa-user-circle fa-sm fa-fw mr-2 text-dark"></i>
+<span class="mr-2 d-none d-lg-inline text-dark font-weight-bold">{{ nome_usuario }}</span>
+</a>
+                        <!-- Dropdown - User Information -->
+                        <div class="dropdown-menu dropdown-menu-right shadow animated--grow-in"
+                            aria-labelledby="userDropdown">
+                            <div class="dropdown-divider"></div>
+                            <a class="dropdown-item" href="{{ url_for('logout') }}" data-toggle="modal" data-target="#logoutModal">
+                                <i class="fas fa-sign-out-alt fa-sm fa-fw mr-2 text-gray-400"></i>
+                                Sair
                             </a>
-                            <!-- Dropdown - User Information -->
-                            <div class="dropdown-menu dropdown-menu-right shadow animated--grow-in"
-                                aria-labelledby="userDropdown">
-                                <div class="dropdown-divider"></div>
-                                <a class="dropdown-item" href="{{ url_for('logout') }}" data-toggle="modal" data-target="#logoutModal">
-                                    <i class="fas fa-sign-out-alt fa-sm fa-fw mr-2 text-gray-400"></i>
-                                    Sair
-                                </a>
-                            </div>
-                        </li>
-
-                    </ul>
-
-                </nav>
-                <!-- End of Topbar -->
-
-                <!-- Begin Page Content -->
-                <div class="container-fluid">
-
-                    <!-- Page Heading -->
-                    <h1 class="h3 mb-2 text-gray-800">Bem-vindo ao seu Controle Financeiro!</h1>
-                    <br>
-                    <p class="mb-4">Organizar suas finanças nunca foi tão fácil. Aqui, você pode registrar suas despesas, acompanhar seus ganhos e visualizar para onde está indo o seu dinheiro — tudo em um só lugar.</p>
-
-                    <!-- DataTales Example -->
-                    <div class="card shadow mb-4">
-                        <div class="card-header py-3">
-                            <h6 class="m-0 font-weight-bold text-primary text-center">Controle de ganhos</h6>
-                            <div>
-                                <a href="{{ url_for('novo_gasto') }}" class="btn btn-success mt-3">
-                                    Nova Receita
-                                </a>
-                            </div>
                         </div>
-                        <div class="card-body">
-                            <div class="table-responsive">
-                                <table class="table table-bordered" id="dataTable" width="100%" cellspacing="0">
-                                    <thead>
-                                        <tr>
-                                            <th>Descrição</th>
-                                            <th>Valor</th>
-                                            <th>Forma de Pagamento</th>
-                                            <th>Tipo</th>
-                                            <th>Data da Transação</th>
-                                            <th>Deletar</th>
-                                            <th>Editar</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        {% for tabela in tabelas %}
-                                        <tr>
-                                            <td>{{ tabela.description }}</td>
-                                            <td>R$ {{ tabela.value | replace('.',',')}}</td>
-                                            <td>{{ tabela.pagamento }}</td>
-                                            <td>{{ tabela.typee }}</td>
-                                            <td>{{ tabela.date_transition.strftime('%d/%m/%Y') }}</td>
-                                            <td><a href="{{ url_for('deletar', tipo='tabela', id=tabela.id) }}">Excluir</a></td>
-                                            <td><a href="{{ url_for('editar_transacao', id=tabela.id, tipo='tabela') }}">Editar</a></td>
-                                        </tr>
-                                        {% endfor %}
-                                    </tbody>
-                                </table>
-                            </div>
-                        </div>
-                    </div>
+                    </li>
 
-                </div>
-                <!-- /.container-fluid -->
+                </ul>
 
+            </nav>
+            <!-- End of Topbar -->
+
+    <!-- FIM DO NAV ------------------------------------------------------------------------------------------------------------------------>
+
+    <!--Inicio ------------------------------------------------------------------------------ Clayton-->
+    
+    <div class="container py-5">
+        <h1 class="mb-4">Olá <span style="color: green">{{ nome_usuario }}</span> adicione sua conta!</h1>
+    
+        <div class="card mb-5">
+            <div class="card-header">
+                <h2>Adicionar Novo Conta</h2>
             </div>
-            <!-- End of Main Content -->
+            <div class="card-body">
+                <form action="{{ url_for('contas') }}" method="POST">
+                        
+                    <!-- Campos do formulário -->
+                    <label for="descricao">Descrição</label>
+                    <input type="text" id="descricao" name="descricao" placeholder="Descrição" required>
+                    
+                    <label for="valor">Valor</label>
+                    <input type="number" id="valor" name="valor" placeholder="Valor" required step="0.01">
+                    
+                    <label for="pagamento">Quem devo?</label>
+                    <input type="text" id="pagamento" name="pagamento" placeholder="Quem devo?" required>
 
+                    <input type="hidden" name="type" value="Despesa">
+                    
+                    <label for="data">Data do Vencimento</label>
+                    <input type="date" id="data" name="data" placeholder="Data Vencimento" required>
+
+                    <label for="status">Status</label>
+                    <select id="status" name="status" required>
+                        <option value="">Selecione</option>
+                        <option value="Sim">Sim</option>
+                        <option value="Não">Não</option>
+                    </select>
+    
+    
+    <button type="submit">Cadastrar Transação</button>
+                </form>
+            </div>
         </div>
-        <!-- End of Content Wrapper -->
-
     </div>
-    <!-- End of Page Wrapper -->
+    
+    <!--Fim --------------------------------------------------------------------------------- clayton-->
 
     <!-- Scroll to Top Button-->
     <a class="scroll-to-top rounded" href="#page-top">

@@ -78,6 +78,13 @@
                     <span>Despesas</span></a>
             </li>
 
+             <!-- Nav Item - Pages Collapse Gastos fixos -->
+            <li class="nav-item">
+                <a class="nav-link" href="{{url_for('contas')}}">
+                    <i class="fas fa-fw fa-money-bill-wave"></i>
+                    <span>Contas</span></a>
+            </li>
+
             <!-- Divider -->
             <hr class="sidebar-divider d-none d-md-block">
 
@@ -154,6 +161,7 @@
                                     <tr>
                                         <th>Descrição</th>
                                         <th>Valor</th>
+                                        <th>Forma de Pagamento</th>
                                         <th>Tipo</th>
                                         <th>Data da Transação</th>
                                         <th>Deletar</th>
@@ -163,6 +171,7 @@
                                     <tr>
                                     <td>{{ fixa.description }}</td>
                                     <td>R$ {{ fixa.value | replace('.',',') }}</td>
+                                    <td>{{ fixa.pagamento }}</td>
                                     <td>{{ fixa.typee }}</td>
                                     <td>{{ fixa.date_transition.strftime('%d/%m/%Y') }}</td>
                                     <td><a href="{{ url_for('deletar', tipo='fixo', id=fixa.id) }}">Excluir</a></td>

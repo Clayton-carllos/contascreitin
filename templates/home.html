@@ -74,6 +74,13 @@
                     <i class="fas fa-fw fa-money-bill-wave"></i>
                     <span>Despesas</span></a>
             </li>
+
+            <!-- Nav Item - Pages Collapse Gastos fixos -->
+            <li class="nav-item">
+                <a class="nav-link" href="{{url_for('contas')}}">
+                    <i class="fas fa-chart-bar"></i>
+                    <span>Contas</span></a>
+            </li>
             
             <!-- Divider -->
             <hr class="sidebar-divider d-none d-md-block">
@@ -169,11 +176,9 @@
                                                 
                                                     <table class="table">
 
-                                    
-                                                        
                                                         <ul>
                                                             <div class="alert alert-info text-center">
-                                                                <li><strong>Saldo Total:</strong> R$ {{ saldo_total | round(2) }}</li>
+                                                                <li><strong>Saldo Total:</strong> R$ {{ saldo_total | round(2)}}</li>
                                                             </div>
                                                         </ul>
                                                     

@@ -1,4 +1,3 @@
-<!--ESSE  É O HTML DA PAGINA DE CONTROLE DE RECEITAS -->
 <!DOCTYPE html>
 <html lang="en">
 
@@ -10,7 +9,7 @@
     <meta name="description" content="">
     <meta name="author" content="">
 
-    <title>CRS - Receitas</title>
+    <title>CRS - Contas</title>
 
     <link rel="icon" href="../static/imagens/favicon.ico" type="image/x-icon">
 
@@ -79,9 +78,9 @@
                     <span>Despesas</span></a>
             </li>
 
-             <!-- Nav Item - Pages Collapse Gastos fixos -->
+            <!-- Nav Item - Pages Collapse Gastos fixos -->
             <li class="nav-item">
-                <a class="nav-link" href="{{url_for('contas')}}">
+                <a class="nav-link" href="{{url_for('lista_transacoesfixas')}}">
                     <i class="fas fa-fw fa-money-bill-wave"></i>
                     <span>Contas</span></a>
             </li>
@@ -119,7 +118,7 @@
                             <a class="nav-link dropdown-toggle" href="#" id="userDropdown" role="button"
                                 data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                                 <i class="fas fa-user-circle fa-sm fa-fw mr-2 text-dark"></i>
-                                <span class="mr-2 d-none d-lg-inline text-dark font-weight-bold">{{ nome_usuario }}</span>
+                                <span class="mr-2 d-none d-lg-inline text-dark font-weight-bold">{{ nome_usuariofixo }}</span>
                             </a>
                             <!-- Dropdown - User Information -->
                             <div class="dropdown-menu dropdown-menu-right shadow animated--grow-in"
@@ -148,40 +147,47 @@
                     <!-- DataTales Example -->
                     <div class="card shadow mb-4">
                         <div class="card-header py-3">
-                            <h6 class="m-0 font-weight-bold text-primary text-center">Controle de ganhos</h6>
+                            <h6 class="m-0 font-weight-bold text-primary text-center">Contas</h6>
                             <div>
-                                <a href="{{ url_for('novo_gasto') }}" class="btn btn-success mt-3">
-                                    Nova Receita
+                                <a href="{{ url_for('nova_conta') }}" class="btn btn-primary mt-3">
+                                    Nova Conta
                                 </a>
                             </div>
                         </div>
                         <div class="card-body">
                             <div class="table-responsive">
                                 <table class="table table-bordered" id="dataTable" width="100%" cellspacing="0">
+
                                     <thead>
-                                        <tr>
-                                            <th>Descrição</th>
-                                            <th>Valor</th>
-                                            <th>Forma de Pagamento</th>
-                                            <th>Tipo</th>
-                                            <th>Data da Transação</th>
-                                            <th>Deletar</th>
-                                            <th>Editar</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        {% for tabela in tabelas %}
-                                        <tr>
-                                            <td>{{ tabela.description }}</td>
-                                            <td>R$ {{ tabela.value | replace('.',',')}}</td>
-                                            <td>{{ tabela.pagamento }}</td>
-                                            <td>{{ tabela.typee }}</td>
-                                            <td>{{ tabela.date_transition.strftime('%d/%m/%Y') }}</td>
-                                            <td><a href="{{ url_for('deletar', tipo='tabela', id=tabela.id) }}">Excluir</a></td>
-                                            <td><a href="{{ url_for('editar_transacao', id=tabela.id, tipo='tabela') }}">Editar</a></td>
-                                        </tr>
-                                        {% endfor %}
-                                    </tbody>
+        <tr>
+            <th>Descrição</th>
+            <th>Valor</th>
+            <th>Devendo</th>
+            <th>Tipo</th>
+            <th>Data de vencimento</th>
+            <th>Pago</th>
+            <th>Editar</th>
+            <th>Deletar</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for conta in contas %}
+        <tr {% if conta.date_vencimento < hoje and conta.status.lower() == 'não' %} style="background-color: #f8d7da;" {% endif %}>
+            <td>{{ conta.description }}</td>
+            <td>R$ {{ conta.value | replace('.', ',') }}</td>
+            <td>{{ conta.pagamento }}</td>
+            <td>{{ conta.typee }}</td>
+            <td>{{ conta.date_vencimento.strftime('%d/%m/%Y') }}</td>
+            <td>{{ conta.status }}</td>
+            <td><a href="{{ url_for('editar_conta', id=conta.id) }}">Editar</a></td>
+            <td>
+                <form action="{{ url_for('excluir_conta', id=conta.id) }}" method="post" onsubmit="return confirm('Tem certeza que deseja excluir?');">
+                    <button type="submit">Excluir</button>
+                </form>
+            </td>
+        </tr>
+        {% endfor %}
+    </tbody>
                                 </table>
                             </div>
                         </div>
@@ -224,7 +230,7 @@
         </div>
     </div>
 
-    <!-- Bootstrap core JavaScript-->
+   <!-- Bootstrap core JavaScript-->
     <script src="../static/vendor/jquery/jquery.min.js"></script>
     <script src="../static/vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
 
@@ -247,6 +253,7 @@
     <!--Script Grafico-->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="../static/grafico.js"></script>
+
 
 </body>
 

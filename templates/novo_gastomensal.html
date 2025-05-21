@@ -10,7 +10,7 @@
     <meta name="description" content="">
     <meta name="author" content="">
 
-    <title>CRS - Clientes</title>
+    <title>CRS - Despesas</title>
 
     <link rel="icon" href="../static/imagens/favicon.ico" type="image/x-icon">
 
@@ -79,6 +79,13 @@
                 <a class="nav-link" href="{{url_for('lista_transacoesfixas')}}">
                     <i class="fas fa-fw fa-money-bill-wave"></i>
                     <span>Despesas</span></a>
+            </li>
+
+             <!-- Nav Item - Pages Collapse Gastos fixos -->
+            <li class="nav-item">
+                <a class="nav-link" href="{{url_for('contas')}}">
+                    <i class="fas fa-fw fa-money-bill-wave"></i>
+                    <span>Contas</span></a>
             </li>
 
             <!-- Divider -->
@@ -164,11 +171,16 @@ data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                     <label for="valor">Valor</label>
                     <input type="number" id="valor" name="valor" placeholder="Valor" required step="0.01">
                     
-                    <label for="tipo">Tipo</label>
-                    <select id="type" name="type" required>
+                    <label for="pagamento">Forma de Pagamento</label>
+                    <select id="pagamento" name="pagamento" required>
                         <option value="">Selecione o tipo</option>
-                        <option value="Despesa">Despesa</option>
+                        <option value="Cartao Nubank">Cartão Nubank</option>
+                        <option value="Cartao Itau">Cartão Itau</option>
+                        <option value="Cartao Terceiros">Cartão de outras pessoas</option>
+                        <option value="Debito / Pix">Débito / Pix</option>
                     </select>
+
+                    <input type="hidden" name="type" value="Despesa">
                     
                     <label for="data">Data</label>
                     <input type="date" id="data" name="data" placeholder="Data" required>
